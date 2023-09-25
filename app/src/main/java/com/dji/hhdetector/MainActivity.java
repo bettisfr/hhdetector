@@ -80,8 +80,9 @@ public class MainActivity extends AppCompatActivity {
         Spinner spinner = findViewById(R.id.spinner);
 
         ArrayList<String> datasetList = new ArrayList<>();
-        datasetList.add("XL-2021");
-        datasetList.add("XL-2022");
+        datasetList.add("M-2023");
+        datasetList.add("L-2023");
+        datasetList.add("XL-2023");
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, datasetList);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
