@@ -7,13 +7,16 @@ import androidx.core.app.ActivityCompat;
 import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -184,6 +187,27 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public static int getOrientation(Uri uri) {
+        try {
+            ExifInterface exifInterface = new ExifInterface(uri.getPath());
+            int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+
+            switch (orientation) {
+                case ExifInterface.ORIENTATION_ROTATE_90:
+                    return 90;
+                case ExifInterface.ORIENTATION_ROTATE_180:
+                    return 180;
+                case ExifInterface.ORIENTATION_ROTATE_270:
+                    return 270;
+                default:
+                    return 0;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return 0; // Default to 0 if there's an error
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -200,6 +224,16 @@ public class MainActivity extends AppCompatActivity {
             }
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                int orientation = getOrientation(uri); // You need to implement the method to get the orientation.
+
+                // Rotate the bitmap if needed
+                if (orientation != 0) {
+                    Matrix matrix = new Matrix();
+                    matrix.postRotate(orientation);
+                    bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                }
+
+                // Now you can display the bitmap
                 imageView.setImageBitmap(bitmap);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -217,13 +251,14 @@ public class MainActivity extends AppCompatActivity {
             .build();
 
         TextView input_ip = findViewById(R.id.input_ip);
-        TextView input_port = findViewById(R.id.input_port);
+//        TextView input_port = findViewById(R.id.input_port);
         Spinner spinner = findViewById(R.id.spinner);
 
         String selectedDataset = spinner.getSelectedItem().toString();
 
-        String url = "http://" + input_ip.getText().toString() + ":" +
-                input_port.getText().toString() + "/v1/object-detection/" + selectedDataset;
+        String url = "http://" + input_ip.getText().toString() + ":5000" +
+//                input_port.getText().toString()
+                "/android/" + selectedDataset;
 
         Request request = new Request.Builder()
                 .url(url)
@@ -238,6 +273,16 @@ public class MainActivity extends AppCompatActivity {
             ZoomageView imageView = findViewById(R.id.image_view);
 
             Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.fromFile(file));
+
+            int orientation = getOrientation(Uri.fromFile(file));
+
+            // Rotate the bitmap if needed
+            if (orientation != 0) {
+                Matrix matrix = new Matrix();
+                matrix.postRotate(orientation);
+                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+            }
+
             Bitmap mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
 
             String jsonArrayString = response.body().string();
@@ -261,7 +306,7 @@ public class MainActivity extends AppCompatActivity {
                 Paint boundingBoxPaint = new Paint();
                 boundingBoxPaint.setColor(Color.RED);
                 boundingBoxPaint.setStyle(Paint.Style.STROKE);
-                boundingBoxPaint.setStrokeWidth(5);
+                boundingBoxPaint.setStrokeWidth(10);
                 canvas.drawRect(x_min, y_min, x_max, y_max, boundingBoxPaint);
 
                 Paint textPaint = new Paint();
@@ -273,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
                 mutableBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
                 fos.close();
 
-                Toast.makeText(MainActivity.this, res, Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity.this, res, Toast.LENGTH_SHORT).show();
             }
 
             if (jsonArray.length() == 0) {
@@ -282,10 +327,20 @@ public class MainActivity extends AppCompatActivity {
 
             imageView.setImageDrawable(null);
             bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.fromFile(file));
+
+            orientation = getOrientation(Uri.fromFile(file));
+
+            // Rotate the bitmap if needed
+            if (orientation != 0) {
+                Matrix matrix = new Matrix();
+                matrix.postRotate(orientation);
+                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+            }
+
             imageView.setImageBitmap(bitmap);
 
-            Button button_send = findViewById(R.id.button_send);
-            button_send.setEnabled(false);
+//            Button button_send = findViewById(R.id.button_send);
+//            button_send.setEnabled(false);
         }
     }
 }
