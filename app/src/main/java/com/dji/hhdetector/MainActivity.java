@@ -224,21 +224,25 @@ public class MainActivity extends AppCompatActivity {
             }
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                int orientation = getOrientation(uri); // You need to implement the method to get the orientation.
-
-                // Rotate the bitmap if needed
-                if (orientation != 0) {
-                    Matrix matrix = new Matrix();
-                    matrix.postRotate(orientation);
-                    bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-                }
-
-                // Now you can display the bitmap
+                bitmap = fixOrientation(bitmap, uri);
                 imageView.setImageBitmap(bitmap);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    private Bitmap fixOrientation(Bitmap bitmap, Uri uri) {
+        int orientation = getOrientation(uri); // You need to implement the method to get the orientation.
+
+        // Rotate the bitmap if needed
+        if (orientation != 0) {
+            Matrix matrix = new Matrix();
+            matrix.postRotate(orientation);
+            bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+        }
+
+        return bitmap;
     }
 
     private void makePost() throws IOException, JSONException {
@@ -273,15 +277,7 @@ public class MainActivity extends AppCompatActivity {
             ZoomageView imageView = findViewById(R.id.image_view);
 
             Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.fromFile(file));
-
-            int orientation = getOrientation(Uri.fromFile(file));
-
-            // Rotate the bitmap if needed
-            if (orientation != 0) {
-                Matrix matrix = new Matrix();
-                matrix.postRotate(orientation);
-                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-            }
+            bitmap = fixOrientation(bitmap, Uri.fromFile(file));
 
             Bitmap mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
 
@@ -327,15 +323,7 @@ public class MainActivity extends AppCompatActivity {
 
             imageView.setImageDrawable(null);
             bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.fromFile(file));
-
-            orientation = getOrientation(Uri.fromFile(file));
-
-            // Rotate the bitmap if needed
-            if (orientation != 0) {
-                Matrix matrix = new Matrix();
-                matrix.postRotate(orientation);
-                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-            }
+            bitmap = fixOrientation(bitmap, Uri.fromFile(file));
 
             imageView.setImageBitmap(bitmap);
 
